@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="pl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoGadżet - Sklep z Elektroniką</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Nagłówek -->
+    <header class="header">
+        <nav class="nav">
+            <div class="logo">
+                <i class="fas fa-bolt"></i>
+                <span>NeoGadżet</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#products">Produkty</a></li>
+                <li><a href="#promos">Promocje</a></li>
+                <li><a href="#delivery">Dostawa</a></li>
+                <li><a href="#contact">Kontakt</a></li>
+            </ul>
+            <div class="nav-actions">
+                <button class="icon-btn"><i class="fas fa-search"></i></button>
+                <button class="icon-btn"><i class="fas fa-shopping-cart"></i></button>
+                <button class="btn-primary">Zaloguj się</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <span class="hero-badge">🔥 Nowości 2026</span>
+            <h1>Elektronika, która <span class="highlight">zmienia</span> życie</h1>
+            <p>Odkryj najnowsze gadżety, słuchawki, kamery i smart home. Darmowa dostawa od 199 zł i 14 dni na zwrot.
+            </p>
+            <div class="hero-buttons">
+                <button class="btn-primary btn-large">Przeglądaj produkty</button>
+                <button class="btn-secondary btn-large">Sprawdż promocje</button>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="floating-card">
+                <i class="fas fa-headphones-alt"></i>
+                <span>AeroSound X2</span>
+                <small>ANC | 8h pracy</small>
+            </div>
+        </div>
+    </section>
+
+    <!-- Kategorie -->
+    <section class="categories">
+        <h2>Popularne Kategorie</h2>
+        <div class="categories-grid">
+            <div class="category-card">
+                <i class="fas fa-headphones"></i>
+                <span>Audio</span>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-video"></i>
+                <span>Kamery</span>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-wifi"></i>
+                <span>Sieć</span>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-watch"></i>
+                <span>Wearables</span>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-laptop"></i>
+                <span>Komputery</span>
+            </div>
+            <div class="category-card">
+                <i class="fas fa-home"></i>
+                <span>Smart Home</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Produkty -->
+    <section id="products" class="products">
+        <h2>Polecane Produkty</h2>
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="product-image">
+                    <i class="fas fa-headphones"></i>
+                </div>
+                <div class="product-info">
+                    <span class="product-category">Audio</span>
+                    <h3>AeroSound X2</h3>
+                    <p>ANC, 8h pracy, ładowanie Qi</p>
+                    <div class="product-price">
+                        <span class="price">299 zł</span>
+                        <button class="btn-add"><i class="fas fa-cart-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">
+                    <i class="fas fa-video"></i>
+                </div>
+                <div class="product-info">
+                    <span class="product-category">Smart Home</span>
+                    <h3>HomeCam Mini 2K</h3>
+                    <p>2K, wykrywanie ruchu, tryb nocny</p>
+                    <div class="product-price">
+                        <span class="price">349 zł</span>
+                        <button class="btn-add"><i class="fas fa-cart-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">
+                    <i class="fas fa-wifi"></i>
+                </div>
+                <div class="product-info">
+                    <span class="product-category">Sieć</span>
+                    <h3>WiLink AX1800</h3>
+                    <p>Wi-Fi 6, AX1800, MU-MIMO</p>
+                    <div class="product-price">
+                        <span class="price">449 zł</span>
+                        <button class="btn-add"><i class="fas fa-cart-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">
+                    <i class="fas fa-watch"></i>
+                </div>
+                <div class="product-info">
+                    <span class="product-category">Wearables</span>
+                    <h3>FitTime Pro</h3>
+                    <p>GPS, pulsometr 24/7, 10 dni</p>
+                    <div class="product-price">
+                        <span class="price">599 zł</span>
+                        <button class="btn-add"><i class="fas fa-cart-plus"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Korzyści -->
+    <section class="benefits">
+        <div class="benefit-item">
+            <i class="fas fa-truck"></i>
+            <h4>Darmowa dostawa</h4>
+            <p>Od 199 zł</p>
+        </div>
+        <div class="benefit-item">
+            <i class="fas fa-undo"></i>
+            <h4>14 dni na zwrot</h4>
+            <p>Bez podawania przyczyny</p>
+        </div>
+        <div class="benefit-item">
+            <i class="fas fa-shield-alt"></i>
+            <h4>Gwarancja</h4>
+            <p>24 miesiące</p>
+        </div>
+        <div class="benefit-item">
+            <i class="fas fa-headset"></i>
+            <h4>Wsparcie 24/7</h4>
+            <p>Pomoc online</p>
+        </div>
+    </section>
+
+    <!-- Stopka -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>NeoGadżet</h4>
+                <p>Twój sklep z elektroniką użytkową i gadżetami.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Obsługa klienta</h4>
+                <ul>
+                    <li><a href="#">Dostawa i płatność</a></li>
+                    <li><a href="#">Zwroty i reklamacje</a></li>
+                    <li><a href="#">FAQ</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Kontakt</h4>
+                <p>pomoc@neogadzet.example</p>
+                <p>pon-pt 09:00-17:00</p>
+            </div>
+        </div>
+        <p class="footer-bottom">&copy; 2026 NeoGadżet Sp. z o.o. Wszelkie prawa zastrzeżone.</p>
+    </footer>
+
+    <!-- WIDGET CZATU -->
+    <div class="chat-widget" id="chatWidget">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="chat-title">
+                    <h4>NeoAsystent</h4>
+                    <div class="chat-status">
+                        <span class="status-dot online"></span>
+                        Online - Odpowiada natychmiast
+                    </div>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <button class="chat-action-btn" id="closeChat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message assistant-message">
+                <div class="message-content">
+                    Witaj w NeoGadżet! Jestem Twoim inteligentnym asystentem. W czym mogę Ci dzisiaj pomóc?
+                </div>
+            </div>
+        </div>
+
+        <div class="chat-input-container">
+            <div class="chat-form">
+                <input type="text" id="userInput" class="chat-input" placeholder="Wpisz pytanie..." autocomplete="off">
+                <button class="chat-send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+        <div class="chat-footer">
+            Napędzane przez <a href="#">NeoAI</a> (RAG System)
+        </div>
+    </div>
+
+    <!-- Przycisk otwierający czat -->
+    <button class="chat-toggle" id="chatTrigger">
+        <i class="fas fa-comments"></i>
+        <div class="chat-badge">1</div>
+    </button>
+
+    <script>
+        const chatWidget = document.getElementById('chatWidget');
+        const chatTrigger = document.getElementById('chatTrigger');
+        const closeChat = document.getElementById('closeChat');
+        const sendBtn = document.getElementById('sendBtn');
+        const userInput = document.getElementById('userInput');
+        const chatMessages = document.getElementById('chatMessages');
+
+        // Funkcja otwierania czatu
+        chatTrigger.addEventListener('click', () => {
+            chatWidget.classList.add('open');
+            chatTrigger.classList.add('hidden');
+        });
+
+        // Funkcja zamykania czatu
+        closeChat.addEventListener('click', () => {
+            chatWidget.classList.remove('open');
+            chatTrigger.classList.remove('hidden');
+        });
+
+        // Funkcja dodawania wiadomości (zgodna z Twoim style.css)
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            // Typ: 'user' lub 'assistant'
+            messageDiv.className = `message ${type}-message`;
+
+            messageDiv.innerHTML = `
+                <div class="message-content">${text}</div>
+                <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+            `;
+
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageDiv;
+        }
+
+        // Komunikacja z serwerem RAG
+        async function handleChat() {
+            const question = userInput.value.trim();
+            if (!question) return;
+
+            // 1. Dodaj wiadomość użytkownika
+            addMessage(question, 'user');
+            userInput.value = '';
+
+            // 2. Dodaj animację pisania
+            const typingIndicator = document.createElement('div');
+            typingIndicator.className = 'message assistant-message';
+            typingIndicator.innerHTML = `
+                <div class="typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            chatMessages.appendChild(typingIndicator);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: question })
+                });
+
+                if (!response.ok) throw new Error('Serwer niedostępny');
+
+                const data = await response.json();
+
+                // 3. Usuń wskaźnik pisania i wstaw odpowiedź
+                typingIndicator.remove();
+                addMessage(data.response, 'assistant');
+
+            } catch (error) {
+                typingIndicator.remove();
+                addMessage('Przepraszam, mam problem z połączeniem z bazą wiedzy. Spróbuj ponownie za chwilę.', 'assistant');
+                console.error('Błąd Fetch:', error);
+            }
+        }
+
+        sendBtn.addEventListener('click', handleChat);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') handleChat();
+        });
+    </script>
+</body>
+
+</html>

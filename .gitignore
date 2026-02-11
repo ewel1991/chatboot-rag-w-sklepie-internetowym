@@ -1,0 +1,25 @@
+Środowisko wirtualne
+
+venv/
+env/
+ENV/
+
+Pliki konfiguracyjne z kluczami (BARDZO WAŻNE)
+
+.env
+
+Cache Pythona
+
+pycache/
+*.py[cod]
+*$py.class
+
+Pliki edytora
+
+.cursor/
+.vscode/
+
+Systemowe
+
+.DS_Store
+Thumbs.db
