@@ -1,9 +1,79 @@
-NeoAsystent - Inteligentny Agent RAG dla Sklepu NeoGadżetWitaj w repozytorium mojego projektu! NeoAsystent to chatbot wspierający obsługę klienta w sklepie internetowym, zbudowany w oparciu o architekturę RAG (Retrieval-Augmented Generation).Dzięki temu rozwiązaniu, agent nie opiera się wyłącznie na ogólnej wiedzy modelu AI, ale korzysta z dostarczonej przeze mnie bazy wiedzy, co eliminuje problem halucynacji i zapewnia precyzyjne odpowiedzi na temat produktów oraz polityk sklepu.🚀 Jak działa mój projekt?Mój agent realizuje proces RAG w trzech głównych krokach:Wyszukiwanie (Retrieval): Przeszukuje plik knowledge_base_for_RAG.txt w poszukiwaniu faktów pasujących do zapytania klienta.Rozszerzanie (Augmentation): Dołącza znalezione fragmenty tekstu do instrukcji (promptu) dla modelu.Generowanie (Generation): Model GPT-4o-mini tworzy uprzejmą odpowiedź w języku polskim, bazując na dostarczonym kontekście.🛠️ Wykorzystane technologieBackend: Python, FastAPI, LangChainAI/LLM: OpenAI (GPT-4o-mini), OpenAI Embeddings (text-embedding-3-small)Baza wektorowa: FAISS (Facebook AI Similarity Search)Frontend: HTML5, CSS3, Vanilla JavaScript (bez zewnętrznych frameworków)📁 Struktura projektuserver.py – serwer FastAPI obsługujący logikę RAG i komunikację z OpenAI.index.html – strona sklepu z wbudowanym widgetem czatu.style.css – warstwa wizualna sklepu i interfejsu asystenta.knowledge_base_for_RAG.txt – baza wiedzy o produktach, zwrotach i dostawach..env – (wymagany) plik z kluczami API.⚙️ Instrukcja uruchomienia1. Przygotowanie środowiskaUpewnij się, że masz zainstalowanego Pythona (zalecana wersja 3.12). Stwórz i aktywuj środowisko wirtualne:python -m venv venv
+NeoAsystent - Inteligentny Agent RAG dla Sklepu NeoGadżet
+
+Witaj w repozytorium mojego projektu! NeoAsystent to chatbot wspierający obsługę klienta w sklepie internetowym, zbudowany w oparciu o architekturę RAG (Retrieval-Augmented Generation).
+
+Dzięki temu rozwiązaniu, agent nie opiera się wyłącznie na ogólnej wiedzy modelu AI, ale korzysta z dostarczonej przeze mnie bazy wiedzy, co eliminuje problem halucynacji i zapewnia precyzyjne odpowiedzi na temat produktów oraz polityk sklepu.
+
+🚀 Jak działa mój projekt?
+
+Mój agent realizuje proces RAG w trzech głównych krokach:
+
+Wyszukiwanie (Retrieval): Przeszukuje plik knowledge_base_for_RAG.txt w poszukiwaniu faktów pasujących do zapytania klienta.
+
+Rozszerzanie (Augmentation): Dołącza znalezione fragmenty tekstu do instrukcji (promptu) dla modelu.
+
+Generowanie (Generation): Model GPT-4o-mini tworzy uprzejmą odpowiedź w języku polskim, bazując na dostarczonym kontekście.
+
+🛠️ Wykorzystane technologie
+
+Backend: Python, FastAPI, LangChain
+
+AI/LLM: OpenAI (GPT-4o-mini), OpenAI Embeddings (text-embedding-3-small)
+
+Baza wektorowa: FAISS (Facebook AI Similarity Search)
+
+Frontend: HTML5, CSS3, Vanilla JavaScript (bez zewnętrznych frameworków)
+
+📁 Struktura projektu
+
+server.py – serwer FastAPI obsługujący logikę RAG i komunikację z OpenAI.
+
+index.html – strona sklepu z wbudowanym widgetem czatu.
+
+style.css – warstwa wizualna sklepu i interfejsu asystenta.
+
+knowledge_base_for_RAG.txt – baza wiedzy o produktach, zwrotach i dostawach.
+
+.env – (wymagany) plik z kluczami API.
+
+⚙️ Instrukcja uruchomienia
+
+1. Przygotowanie środowiska
+
+Upewnij się, że masz zainstalowanego Pythona (zalecana wersja 3.12). Stwórz i aktywuj środowisko wirtualne:
+
+python -m venv venv
 # Windows:
 source venv/Scripts/activate
 # Mac/Linux:
 source venv/bin/activate
-2. Instalacja bibliotekZainstaluj wszystkie wymagane paczki:pip install langchain langchain-openai langchain-community faiss-cpu fastapi uvicorn python-dotenv pydantic
-3. Konfiguracja kluczyStwórz plik .env w głównym folderze i dodaj swój klucz:OPENAI_API_KEY=twój_klucz_api
-4. Uruchomienie botaWystartuj serwer backendowy:python server.py
-Serwer będzie dostępny pod adresem http://127.0.0.1:8000. Teraz możesz po prostu otworzyć index.html w przeglądarce i zacząć rozmowę z NeoAsystentem!💡 Czego się nauczyłam?Podczas tworzenia tego projektu zgłębiłam techniki przetwarzania języka naturalnego (NLP), dowiedziałam się, jak działają wektory (embeddingi) oraz jak optymalnie dzielić tekst na fragmenty (chunking), aby asystent AI był jak najbardziej skuteczny.Projekt stworzony z pasją do technologii AI! ✨
+
+
+2. Instalacja bibliotek
+
+Zainstaluj wszystkie wymagane paczki:
+
+pip install langchain langchain-openai langchain-community faiss-cpu fastapi uvicorn python-dotenv pydantic
+
+
+3. Konfiguracja kluczy
+
+Stwórz plik .env w głównym folderze i dodaj swój klucz:
+
+OPENAI_API_KEY=twój_klucz_api
+
+
+4. Uruchomienie bota
+
+Wystartuj serwer backendowy:
+
+python server.py
+
+
+Serwer będzie dostępny pod adresem http://127.0.0.1:8000. Teraz możesz po prostu otworzyć index.html w przeglądarce i zacząć rozmowę z NeoAsystentem!
+
+💡 Czego się nauczyłam?
+
+Podczas tworzenia tego projektu zgłębiłam techniki przetwarzania języka naturalnego (NLP), dowiedziałam się, jak działają wektory (embeddingi) oraz jak optymalnie dzielić tekst na fragmenty (chunking), aby asystent AI był jak najbardziej skuteczny.
+
+Projekt stworzony z pasją do technologii AI! ✨
