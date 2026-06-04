@@ -1,8 +1,4 @@
-fastapi
-uvicorn
-python-dotenv
-langchain
-langchain-community
-langchain-google-genai
-faiss-cpu
-sentence-transformers
+fastapi==0.110.0
+pydantic==2.6.4
+openai==1.14.1
+python-dotenv==1.0.1

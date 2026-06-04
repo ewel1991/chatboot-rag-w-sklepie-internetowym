@@ -1,167 +1,201 @@
 import os
 import sys
+import math
 import warnings
-import logging
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
-from pydantic import BaseModel, Field, validator
-from pathlib import Path
-
-limiter = Limiter(key_func=get_remote_address)
-logger = logging.getLogger(__name__)
-
+from openai import OpenAI
 
 # Wyciszenie ostrzeżeń systemowych
 warnings.filterwarnings("ignore")
 
-# --- DIAGNOSTYKA SYSTEMU ---
-# Pozostawiamy logi startowe, abyś zawsze wiedziała, czy system ruszył poprawnie
-print("\n=== DIAGNOSTYKA SYSTEMU ===")
-print(f"1. Ścieżka Pythona: {sys.executable}")
-try:
-    import langchain
-    import langchain_core
-    print(f"2. Lokalizacja LangChain: {langchain.__file__}")
-    print(
-        f"3. Wersja LangChain: {getattr(langchain, '__version__', 'Nieznana')}")
-    print(f"4. Wersja LangChain Core: {langchain_core.__version__}")
-except Exception as e:
-    print(f"BŁĄD DIAGNOSTYKI: {e}")
-print("===========================\n")
-
-try:
-    # Importy z paczek specjalistycznych
-    from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-    from langchain_community.document_loaders import TextLoader
-    from langchain_text_splitters import RecursiveCharacterTextSplitter
-    from langchain_community.vectorstores import FAISS
-    from langchain_core.prompts import ChatPromptTemplate
-
-    # Importy z głównej paczki 'langchain'
-    from langchain.chains import create_retrieval_chain
-    from langchain.chains.combine_documents import create_stuff_documents_chain
-
-except ImportError as e:
-    print(f"\n[BŁĄD KRYTYCZNY]: Nie można załadować modułu: {e}")
-    print("\nROZWIĄZANIE: Upewnij się, że zainstalowałeś: pip install langchain langchain-openai langchain-community faiss-cpu")
-    sys.exit(1)
-
-# 1. Konfiguracja środowiska
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-if not OPENAI_API_KEY:
-    print("BŁĄD: Brak klucza OPENAI_API_KEY w pliku .env!")
-    sys.exit(1)
+# Inicjalizacja klienta OpenAI (tylko jeśli klucz jest dostępny)
+client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
-app = FastAPI(title="NeoAsystent RAG API")
-app.state.limiter = limiter
+app = FastAPI(title="NeoAsystent RAG API - Lekki Serverless")
 
-# Konfiguracja CORS (umożliwia index.html komunikację z serwerem)
+# Konfiguracja CORS (umożliwia komunikację z frontendu)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
+    allow_origins=["*"],
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-rag_chain = None
+# Globalna pamięć podręczna na wektory bazy wiedzy (In-Memory Cache)
+# Pozwala uniknąć ponownego generowania wektorów przy ciepłych startach lambdy
+cached_chunks_with_embeddings = None
 
 
-def setup_rag():
-    global rag_chain
-    print("\n--- INICJALIZACJA SYSTEMU RAG (OpenAI) ---")
-
-    try:
-        # KROK 1: Ładowanie bazy wiedzy z pliku tekstowego
-        KB_PATH = Path(__file__).parent / "knowledge_base_for_RAG.txt"
-        if not KB_PATH.exists():
-            raise FileNotFoundError(f"Knowledge base not found: {KB_PATH}")
-
-        print(f"1. Wczytywanie pliku: {file_path}")
-        loader = TextLoader(file_path, encoding="utf-8")
-        raw_docs = loader.load()
-
-        # KROK 2: Dzielenie tekstu na fragmenty (Chunks)
-        print("2. Dzielenie tekstu na fragmenty...")
-        text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=150,
-            separators=[
-                "====================================================================", "\n\n", "\n", " "]
-        )
-        docs = text_splitter.split_documents(raw_docs)
-        print(f"   - Utworzono {len(docs)} fragmentów.")
-
-        # KROK 3: Wektoryzacja (Embeddingi)
-        print("3. Tworzenie bazy wektorowej (Model: text-embedding-3-small)...")
-        embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
-        vectorstore = FAISS.from_documents(docs, embeddings)
-        retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
-
-        # KROK 4: Konfiguracja Modelu językowego (LLM)
-        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-
-        # KROK 5: Definicja instrukcji (Prompt)
-        system_prompt = (
-            "Jesteś NeoAsystentem, doradcą klienta w sklepie NeoGadżet. "
-            "Używaj poniższych fragmentów bazy wiedzy, aby odpowiedzieć na pytanie. "
-            "Jeśli nie znasz odpowiedzi, powiedz, że nie wiesz i poproś o kontakt na pomoc@neogadzet.example. "
-            "Odpowiadaj uprzejmie i po polsku.\n\n"
-            "{context}"
-        )
-
-        prompt = ChatPromptTemplate.from_messages([
-            ("system", system_prompt),
-            ("human", "{input}"),
-        ])
-
-        # KROK 6: Budowa łańcucha RAG
-        combine_docs_chain = create_stuff_documents_chain(llm, prompt)
-        rag_chain = create_retrieval_chain(retriever, combine_docs_chain)
-
-        print("--- SYSTEM GOTOWY DO PRACY! ---")
-
-    except Exception as e:
-        print(f"BŁĄD PODCZAS STARTU: {e}")
+def dot_product(v1, v2):
+    """Oblicza iloczyn skalarny dwóch wektorów."""
+    return sum(x * y for x, y in zip(v1, v2))
 
 
-# Uruchomienie inicjalizacji przy starcie aplikacji
-setup_rag()
+def cosine_similarity(v1, v2):
+    """Oblicza podobieństwo cosinusowe dwóch wektorów."""
+    # Ponieważ wektory z modelu text-embedding-3-small są już znormalizowane,
+    # ich podobieństwo cosinusowe to po prostu iloczyn skalarny.
+    return dot_product(v1, v2)
+
+
+def load_and_embed_knowledge_base():
+    """Wczytuje bazę wiedzy, dzieli na bloki i generuje dla nich wektory (Embeddings)."""
+    global cached_chunks_with_embeddings
+
+    if cached_chunks_with_embeddings is not None:
+        return cached_chunks_with_embeddings
+
+    if not client:
+        raise ValueError(
+            "Klient OpenAI nie jest zainicjalizowany. Brak klucza API.")
+
+    # Określanie ścieżki do pliku bazy wiedzy
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(current_dir, "..", "knowledge_base_for_RAG.txt")
+
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(
+            f"Nie znaleziono pliku bazy wiedzy w ścieżce: {file_path}")
+
+    # Odczyt pliku
+    with open(file_path, "r", encoding="utf-8") as f:
+        content = f.read()
+
+    # Podział tekstu według separatora
+    separator = "===================================================================="
+    raw_chunks = content.split(separator)
+
+    chunks = []
+    for rc in raw_chunks:
+        cleaned = rc.strip()
+        if cleaned:
+            chunks.append(cleaned)
+
+    if not chunks:
+        raise ValueError("Baza wiedzy jest pusta lub źle sformatowana.")
+
+    # Generowanie embeddingów dla wszystkich bloków tekstu za jednym żądaniem API (Batching)
+    response = client.embeddings.create(
+        input=chunks,
+        model="text-embedding-3-small"
+    )
+
+    # Łączenie tekstu z wektorem
+    cached_chunks_with_embeddings = []
+    for i, data in enumerate(response.data):
+        cached_chunks_with_embeddings.append({
+            "text": chunks[i],
+            "embedding": data.embedding
+        })
+
+    print(
+        f"Pomyślnie zainicjalizowano bazę RAG: {len(cached_chunks_with_embeddings)} bloków.")
+    return cached_chunks_with_embeddings
 
 
 class ChatRequest(BaseModel):
-    message: str = Field(..., min_length=1, max_length=500)
+    message: str
 
-    @validator('message')
-    def sanitize_message(cls, v):
-        if not v.strip():
-            raise ValueError('Message cannot be empty')
-        return v.strip()
+
+async def execute_chat_logic(message: str):
+    """Wspólna logika obsługi zapytania czatu RAG."""
+    if not OPENAI_API_KEY or not client:
+        return {"response": "Konfiguracja serwera niekompletna. Upewnij się, że dodałeś zmienną OPENAI_API_KEY w panelu Vercel."}
+
+    try:
+        # 1. Pobierz lub zainicjalizuj bazę wiedzy z wektorami
+        kb_data = load_and_embed_knowledge_base()
+    except Exception as e:
+        print(f"Błąd ładowania bazy wiedzy: {e}")
+        raise HTTPException(
+            status_code=500, detail="Nie udało się załadować bazy wiedzy RAG.")
+
+    try:
+        # 2. Wygeneruj wektor dla pytania użytkownika
+        query_response = client.embeddings.create(
+            input=message,
+            model="text-embedding-3-small"
+        )
+        query_vector = query_response.data[0].embedding
+
+        # 3. Przeszukaj bazę wiedzy (Wyszukiwanie Semantyczne)
+        scored_chunks = []
+        for item in kb_data:
+            similarity = cosine_similarity(query_vector, item["embedding"])
+            scored_chunks.append((similarity, item["text"]))
+
+        # Sortowanie po najwyższym podobieństwie
+        scored_chunks.sort(key=lambda x: x[0], reverse=True)
+
+        # Wybierz 3 najbardziej dopasowane fragmenty
+        top_k = scored_chunks[:3]
+        context = "\n\n---\n\n".join([text for _, text in top_k])
+
+        # 4. Generowanie odpowiedzi przy użyciu modelu LLM
+        system_prompt = (
+            "Jesteś NeoAsystentem, profesjonalnym doradcą klienta w sklepie z elektroniką NeoGadżet.\n"
+            "Użyj poniższych fragmentów bazy wiedzy (kontekstu), aby precyzyjnie odpowiedzieć na pytanie.\n"
+            "Jeśli w kontekście nie ma odpowiedzi, powiedz uprzejmie, że nie posiadasz takich informacji i zachęć do kontaktu na pomoc@neogadzet.example.\n"
+            "Odpowiadaj naturalnie, zwięźle, profesjonalnie i wyłącznie po polsku.\n\n"
+            f"KONTEKST Z BAZY WIEDZY:\n{context}"
+        )
+
+        chat_completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ],
+            temperature=0.2
+        )
+
+        return {"response": chat_completion.choices[0].message.content}
+
+    except Exception as e:
+        print(f"Błąd podczas przetwarzania pytania: {e}")
+        return {"response": "Przepraszam, wystąpił problem techniczny podczas generowania odpowiedzi. Spróbuj ponownie za chwilę."}
+
+# Domyślny punkt wejścia dla wdrożenia produkcyjnego na Vercel (POST /api/chat)
+
+
+@app.post("/api/chat")
+async def chat_api(request: ChatRequest):
+    return await execute_chat_logic(request.message)
+
+# Alias ułatwiający lokalne testowanie bezpośrednio z lokalnego pliku HTML (POST /chat)
 
 
 @app.post("/chat")
-@limiter.limit("10/minute")  # Max 10 requestów/min
-async def chat(request: ChatRequest):
-    if not rag_chain:
-        raise HTTPException(
-            status_code=503, detail="System RAG nie jest gotowy.")
-    try:
-        # Wywołanie łańcucha RAG (z kluczem 'input')
-        result = rag_chain.invoke({"input": request.message})
-        return {"response": result["answer"]}
-    except ValueError as e:
-        logger.warning(f"Invalid input: {e}")
-        raise HTTPException(status_code=400, detail="Nieprawidłowe zapytanie")
-    except Exception as e:
-        logger.error(f"RAG chain error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Błąd przetwarzania")
+async def chat_local(request: ChatRequest):
+    return await execute_chat_logic(request.message)
 
-if __name__ == "__main__":
-    import uvicorn
-    # Start serwera na localhost:8000
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+# Przyjazna strona główna eliminująca błąd 404 podczas lokalnych testów (GET /)
+
+
+@app.get("/")
+async def root():
+    return {
+        "status": "active",
+        "message": "Serwer NeoAsystenta działa poprawnie! Aby rozmawiać z botem, otwórz plik index.html w przeglądarce.",
+        "endpoints": {
+            "chat_endpoint_vercel": "POST /api/chat",
+            "chat_endpoint_local": "POST /chat",
+            "health_check": "GET /api/health"
+        }
+    }
+
+
+@app.get("/api/health")
+async def health():
+    return {
+        "status": "healthy",
+        "openai_key_configured": OPENAI_API_KEY is not None,
+        "is_cache_warm": cached_chunks_with_embeddings is not None
+    }
