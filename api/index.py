@@ -14,12 +14,12 @@ warnings.filterwarnings("ignore")
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Inicjalizacja klienta OpenAI (tylko jeśli klucz jest dostępny)
+# Inicjalizacja klienta OpenAI (tylko jeśli klucz jest dostępny w środowisku)
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
-app = FastAPI(title="NeoAsystent RAG API - Lekki Serverless")
+app = FastAPI(title="NeoAsystent RAG API - Lekki i Odporny")
 
-# Konfiguracja CORS (umożliwia komunikację z frontendu)
+# Konfiguracja CORS (umożliwia komunikację z Twoim lokalnym i zdalnym frontendem)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,8 +29,18 @@ app.add_middleware(
 )
 
 # Globalna pamięć podręczna na wektory bazy wiedzy (In-Memory Cache)
-# Pozwala uniknąć ponownego generowania wektorów przy ciepłych startach lambdy
+# Pozwala to zaoszczędzić limity i czas przy ponownych wywołaniach tej samej lambdy
 cached_chunks_with_embeddings = None
+
+# Wbudowana zapasowa baza wiedzy na wypadek problemów ze ścieżkami plików na Vercel (Fail-safe)
+DEFAULT_KNOWLEDGE_BASE = """
+Słuchawki AeroSound X2 kosztują 299 zł. Mają aktywną redukcję szumów (ANC), działają przez 8 godzin na jednym ładowaniu i obsługują ładowanie bezprzewodowe Qi.
+HomeCam Mini 2K kosztuje 349 zł. Posiada rozdzielczość 2K, funkcję wykrywania ruchu oraz tryb nocny do monitorowania domu.
+WiLink AX1800 kosztuje 449 zł. To nowoczesny router obsługujący standard Wi-Fi 6, wyposażony w technologię MU-MIMO.
+FitTime Pro kosztuje 599 zł. Smartwatch posiada wbudowany GPS, pulsometr działający 24/7 oraz baterię trzymającą do 10 dni.
+Darmowa dostawa w sklepie NeoGadżet obowiązuje dla wszystkich zamówień od kwoty 199 zł. Dla tańszych zamówień dostawa do paczkomatu kosztuje 12 zł, a kurierem 15 zł.
+Zasady zwrotów: Każdy klient ma prawo do zwrotu zakupionego towaru w ciągu 14 dni bez podawania przyczyny. Koszt odesłania towaru pokrywa kupujący.
+"""
 
 
 def dot_product(v1, v2):
@@ -46,7 +56,7 @@ def cosine_similarity(v1, v2):
 
 
 def load_and_embed_knowledge_base():
-    """Wczytuje bazę wiedzy, dzieli na bloki i generuje dla nich wektory (Embeddings)."""
+    """Wczytuje bazę wiedzy z pliku zewnętrznego lub uruchamia bazę wbudowaną."""
     global cached_chunks_with_embeddings
 
     if cached_chunks_with_embeddings is not None:
@@ -56,21 +66,38 @@ def load_and_embed_knowledge_base():
         raise ValueError(
             "Klient OpenAI nie jest zainicjalizowany. Brak klucza API.")
 
-    # Określanie ścieżki do pliku bazy wiedzy
+    # Próba odnalezienia pliku bazy wiedzy w różnych potencjalnych lokalizacjach na Vercel
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(current_dir, "..", "knowledge_base_for_RAG.txt")
+    possible_paths = [
+        os.path.join(current_dir, "..", "knowledge_base_for_RAG.txt"),
+        os.path.join(current_dir, "knowledge_base_for_RAG.txt"),
+        "knowledge_base_for_RAG.txt",
+        "./knowledge_base_for_RAG.txt",
+        "/var/task/knowledge_base_for_RAG.txt"
+    ]
 
-    if not os.path.exists(file_path):
-        raise FileNotFoundError(
-            f"Nie znaleziono pliku bazy wiedzy w ścieżce: {file_path}")
+    content = None
+    for path in possible_paths:
+        if os.path.exists(path):
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    content = f.read()
+                print(f"Pomyślnie wczytano bazę wiedzy z lokalizacji: {path}")
+                break
+            except Exception as e:
+                print(f"Błąd odczytu z {path}: {e}")
 
-    # Odczyt pliku
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
+    # Jeśli nie udało się wczytać pliku zewnętrznego, używamy wbudowanej bazy (fail-safe)
+    if not content:
+        print("Ostrzeżenie: Plik bazy wiedzy nie został odnaleziony. Uruchamianie wbudowanej bazy zapasowej.")
+        content = DEFAULT_KNOWLEDGE_BASE
 
     # Podział tekstu według separatora
     separator = "===================================================================="
-    raw_chunks = content.split(separator)
+    if separator in content:
+        raw_chunks = content.split(separator)
+    else:
+        raw_chunks = content.split("\n\n")
 
     chunks = []
     for rc in raw_chunks:
@@ -79,15 +106,15 @@ def load_and_embed_knowledge_base():
             chunks.append(cleaned)
 
     if not chunks:
-        raise ValueError("Baza wiedzy jest pusta lub źle sformatowana.")
+        chunks = [content.strip()]
 
-    # Generowanie embeddingów dla wszystkich bloków tekstu za jednym żądaniem API (Batching)
+    # Generowanie embeddingów dla wszystkich fragmentów (Batching)
     response = client.embeddings.create(
         input=chunks,
         model="text-embedding-3-small"
     )
 
-    # Łączenie tekstu z wektorem
+    # Łączenie oryginalnego tekstu z wygenerowanym wektorem
     cached_chunks_with_embeddings = []
     for i, data in enumerate(response.data):
         cached_chunks_with_embeddings.append({
@@ -96,7 +123,7 @@ def load_and_embed_knowledge_base():
         })
 
     print(
-        f"Pomyślnie zainicjalizowano bazę RAG: {len(cached_chunks_with_embeddings)} bloków.")
+        f"Pomyślnie przygotowano bazę RAG: {len(cached_chunks_with_embeddings)} fragmentów.")
     return cached_chunks_with_embeddings
 
 
@@ -107,38 +134,37 @@ class ChatRequest(BaseModel):
 async def execute_chat_logic(message: str):
     """Wspólna logika obsługi zapytania czatu RAG."""
     if not OPENAI_API_KEY or not client:
-        return {"response": "Konfiguracja serwera niekompletna. Upewnij się, że dodałeś zmienną OPENAI_API_KEY w panelu Vercel."}
+        return {"response": "Konfiguracja serwera niekompletna. Upewnij się, że dodałeś poprawny klucz OPENAI_API_KEY w panelu Vercel."}
 
     try:
-        # 1. Pobierz lub zainicjalizuj bazę wiedzy z wektorami
         kb_data = load_and_embed_knowledge_base()
     except Exception as e:
-        print(f"Błąd ładowania bazy wiedzy: {e}")
+        print(f"Błąd inicjalizacji bazy wiedzy RAG: {e}")
         raise HTTPException(
             status_code=500, detail="Nie udało się załadować bazy wiedzy RAG.")
 
     try:
-        # 2. Wygeneruj wektor dla pytania użytkownika
+        # 1. Generowanie wektora zapytania
         query_response = client.embeddings.create(
             input=message,
             model="text-embedding-3-small"
         )
         query_vector = query_response.data[0].embedding
 
-        # 3. Przeszukaj bazę wiedzy (Wyszukiwanie Semantyczne)
+        # 2. Wyszukiwanie semantyczne (Cosine Similarity)
         scored_chunks = []
         for item in kb_data:
             similarity = cosine_similarity(query_vector, item["embedding"])
             scored_chunks.append((similarity, item["text"]))
 
-        # Sortowanie po najwyższym podobieństwie
+        # Sortowanie od najbardziej dopasowanego fragmentu
         scored_chunks.sort(key=lambda x: x[0], reverse=True)
 
-        # Wybierz 3 najbardziej dopasowane fragmenty
+        # Wybór 3 najlepszych fragmentów kontekstu
         top_k = scored_chunks[:3]
         context = "\n\n---\n\n".join([text for _, text in top_k])
 
-        # 4. Generowanie odpowiedzi przy użyciu modelu LLM
+        # 3. Prompt systemowy dla LLM
         system_prompt = (
             "Jesteś NeoAsystentem, profesjonalnym doradcą klienta w sklepie z elektroniką NeoGadżet.\n"
             "Użyj poniższych fragmentów bazy wiedzy (kontekstu), aby precyzyjnie odpowiedzieć na pytanie.\n"
@@ -159,7 +185,7 @@ async def execute_chat_logic(message: str):
         return {"response": chat_completion.choices[0].message.content}
 
     except Exception as e:
-        print(f"Błąd podczas przetwarzania pytania: {e}")
+        print(f"Błąd podczas przetwarzania zapytania: {e}")
         return {"response": "Przepraszam, wystąpił problem techniczny podczas generowania odpowiedzi. Spróbuj ponownie za chwilę."}
 
 # Domyślny punkt wejścia dla wdrożenia produkcyjnego na Vercel (POST /api/chat)
@@ -176,7 +202,7 @@ async def chat_api(request: ChatRequest):
 async def chat_local(request: ChatRequest):
     return await execute_chat_logic(request.message)
 
-# Przyjazna strona główna eliminująca błąd 404 podczas lokalnych testów (GET /)
+# Strona główna eliminująca błąd 404 podczas lokalnych testów (GET /)
 
 
 @app.get("/")
