@@ -1,246 +1,482 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="pl" class="scroll-smooth">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoGadżet - Sklep z Elektroniką</title>
-    <link rel="stylesheet" href="style.css">
+    <title>NeoGadżet - Sklep z Nowoczesną Elektroniką</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        neoBlue: '#2563eb',
+                        neoDark: '#0f172a',
+                        neoLight: '#f8fafc',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom animations & scrollbar */
+        .glass-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .neo-gradient {
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+        }
+
+        .neo-shadow {
+            box-shadow: 0 10px 30px -10px rgba(37, 99, 235, 0.2);
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Typing animation */
+        .dot-pulse {
+            animation: pulse 1.4s infinite ease-in-out both;
+        }
+
+        .dot-pulse:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .dot-pulse:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+                opacity: 0.3;
+            }
+
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
 </head>
 
-<body>
-    <!-- Nagłówek -->
-    <header class="header">
-        <nav class="nav">
-            <div class="logo">
-                <i class="fas fa-bolt"></i>
-                <span>NeoGadżet</span>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col antialiased">
+
+    <!-- Nagłówek (Sticky & Glassmorphism) -->
+    <header class="sticky top-0 z-40 w-full border-b border-slate-200/80 glass-header transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <div
+                    class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-500/20">
+                    <i class="fas fa-bolt text-lg"></i>
+                </div>
+                <span class="text-xl font-extrabold tracking-tight text-slate-900">Neo<span
+                        class="text-blue-600">Gadżet</span></span>
             </div>
-            <ul class="nav-links">
-                <li><a href="#products">Produkty</a></li>
-                <li><a href="#promos">Promocje</a></li>
-                <li><a href="#delivery">Dostawa</a></li>
-                <li><a href="#contact">Kontakt</a></li>
-            </ul>
-            <div class="nav-actions">
-                <button class="icon-btn"><i class="fas fa-search"></i></button>
-                <button class="icon-btn"><i class="fas fa-shopping-cart"></i></button>
-                <button class="btn-primary">Zaloguj się</button>
+
+            <nav class="hidden md:flex space-x-8 text-sm font-semibold text-slate-600">
+                <a href="#products" class="hover:text-blue-600 transition-colors">Produkty</a>
+                <a href="#benefits" class="hover:text-blue-600 transition-colors">Gwarancje</a>
+                <a href="#faq" class="hover:text-blue-600 transition-colors">Wsparcie</a>
+                <a href="#contact" class="hover:text-blue-600 transition-colors">Kontakt</a>
+            </nav>
+
+            <div class="flex items-center space-x-3">
+                <button class="p-2 text-slate-500 hover:text-slate-900 transition-colors relative" aria-label="Koszyk">
+                    <i class="fas fa-shopping-cart text-lg"></i>
+                    <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-blue-600"></span>
+                </button>
+                <button
+                    class="hidden sm:inline-flex bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+                    Zaloguj się
+                </button>
             </div>
-        </nav>
+        </div>
     </header>
 
     <!-- Hero Section -->
-    <section class="hero">
-        <div class="hero-content">
-            <span class="hero-badge">🔥 Nowości 2026</span>
-            <h1>Elektronika, która <span class="highlight">zmienia</span> życie</h1>
-            <p>Odkryj najnowsze gadżety, słuchawki, kamery i smart home. Darmowa dostawa od 199 zł i 14 dni na zwrot.
+    <section
+        class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-20 w-full flex flex-col lg:flex-row items-center gap-12">
+        <div class="flex-1 text-center lg:text-left space-y-6">
+            <span
+                class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-600 mr-1.5 animate-ping"></span> Nowości 2026
+            </span>
+            <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight leading-tight">
+                Elektronika, która <br><span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">zmienia codzienne
+                    życie</span>
+            </h1>
+            <p class="text-base sm:text-lg text-slate-600 max-w-xl mx-auto lg:mx-0">
+                Odkryj najnowsze gadżety, słuchawki, kamery i smart home. Bezpieczne płatności, darmowa dostawa od 199
+                zł i bezproblemowy zwrot do 14 dni.
             </p>
-            <div class="hero-buttons">
-                <button class="btn-primary btn-large">Przeglądaj produkty</button>
-                <button class="btn-secondary btn-large">Sprawdż promocje</button>
+            <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
+                <a href="#products"
+                    class="w-full sm:w-auto text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8 py-4 rounded-xl shadow-lg shadow-blue-500/25 transition-all transform hover:-translate-y-0.5">
+                    Przeglądaj produkty
+                </a>
+                <button onclick="document.getElementById('chatTrigger').click()"
+                    class="w-full sm:w-auto text-center bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-semibold px-8 py-4 rounded-xl shadow-sm transition-all">
+                    Porozmawiaj z Asystentem AI
+                </button>
             </div>
         </div>
-        <div class="hero-visual">
-            <div class="floating-card">
-                <i class="fas fa-headphones-alt"></i>
-                <span>AeroSound X2</span>
-                <small>ANC | 8h pracy</small>
+
+        <div class="flex-1 relative w-full max-w-md lg:max-w-none flex items-center justify-center">
+            <div
+                class="w-72 h-72 sm:w-96 sm:h-96 rounded-full bg-gradient-to-tr from-blue-100 to-indigo-100 absolute -z-10 blur-3xl opacity-70">
+            </div>
+            <!-- Interaktywne urządzenie wizualne -->
+            <div
+                class="relative bg-white p-8 rounded-3xl shadow-2xl border border-slate-100 w-full max-w-xs sm:max-w-sm transition-all hover:scale-[1.02] duration-300">
+                <div
+                    class="aspect-square rounded-2xl bg-slate-100 flex items-center justify-center mb-6 relative overflow-hidden group">
+                    <i
+                        class="fas fa-headphones text-7xl text-blue-500 group-hover:scale-110 transition-transform duration-500"></i>
+                    <span
+                        class="absolute top-3 right-3 bg-red-500 text-white font-bold text-xs px-2 py-1 rounded-lg">Hit
+                        sprzedaży</span>
+                </div>
+                <div class="space-y-2">
+                    <span class="text-xs font-bold tracking-wider text-blue-600 uppercase">Premium Audio</span>
+                    <h3 class="text-xl font-bold text-slate-900">AeroSound X2</h3>
+                    <p class="text-sm text-slate-500">Aktywna Redukcja Szumów (ANC), 8h pracy, etui ładujące Qi.</p>
+                    <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                        <span class="text-2xl font-black text-slate-900">299 zł</span>
+                        <button
+                            class="bg-blue-600 hover:bg-blue-700 text-white w-10 h-10 rounded-xl flex items-center justify-center transition-all shadow-md shadow-blue-500/15">
+                            <i class="fas fa-shopping-basket"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
 
     <!-- Kategorie -->
-    <section class="categories">
-        <h2>Popularne Kategorie</h2>
-        <div class="categories-grid">
-            <div class="category-card">
-                <i class="fas fa-headphones"></i>
-                <span>Audio</span>
-            </div>
-            <div class="category-card">
-                <i class="fas fa-video"></i>
-                <span>Kamery</span>
-            </div>
-            <div class="category-card">
-                <i class="fas fa-wifi"></i>
-                <span>Sieć</span>
-            </div>
-            <div class="category-card">
-                <i class="fas fa-watch"></i>
-                <span>Wearables</span>
-            </div>
-            <div class="category-card">
-                <i class="fas fa-laptop"></i>
-                <span>Komputery</span>
-            </div>
-            <div class="category-card">
-                <i class="fas fa-home"></i>
-                <span>Smart Home</span>
-            </div>
-        </div>
-    </section>
-
-    <!-- Produkty -->
-    <section id="products" class="products">
-        <h2>Polecane Produkty</h2>
-        <div class="products-grid">
-            <div class="product-card">
-                <div class="product-image">
-                    <i class="fas fa-headphones"></i>
+    <section class="bg-slate-100/50 py-16 border-y border-slate-200/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight mb-8 text-center sm:text-left">Popularne
+                Kategorie</h2>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div
+                    class="bg-white p-6 rounded-2xl border border-slate-200/60 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <i class="fas fa-headphones text-xl"></i></div>
+                    <span class="text-sm font-semibold text-slate-800">Audio</span>
                 </div>
-                <div class="product-info">
-                    <span class="product-category">Audio</span>
-                    <h3>AeroSound X2</h3>
-                    <p>ANC, 8h pracy, ładowanie Qi</p>
-                    <div class="product-price">
-                        <span class="price">299 zł</span>
-                        <button class="btn-add"><i class="fas fa-cart-plus"></i></button>
-                    </div>
+                <div
+                    class="bg-white p-6 rounded-2xl border border-slate-200/60 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <i class="fas fa-video text-xl"></i></div>
+                    <span class="text-sm font-semibold text-slate-800">Kamery</span>
                 </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">
-                    <i class="fas fa-video"></i>
+                <div
+                    class="bg-white p-6 rounded-2xl border border-slate-200/60 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <i class="fas fa-wifi text-xl"></i></div>
+                    <span class="text-sm font-semibold text-slate-800">Sieć</span>
                 </div>
-                <div class="product-info">
-                    <span class="product-category">Smart Home</span>
-                    <h3>HomeCam Mini 2K</h3>
-                    <p>2K, wykrywanie ruchu, tryb nocny</p>
-                    <div class="product-price">
-                        <span class="price">349 zł</span>
-                        <button class="btn-add"><i class="fas fa-cart-plus"></i></button>
-                    </div>
+                <div
+                    class="bg-white p-6 rounded-2xl border border-slate-200/60 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <i class="fas fa-stopwatch text-xl"></i></div>
+                    <span class="text-sm font-semibold text-slate-800">Wearables</span>
                 </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">
-                    <i class="fas fa-wifi"></i>
+                <div
+                    class="bg-white p-6 rounded-2xl border border-slate-200/60 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <i class="fas fa-laptop text-xl"></i></div>
+                    <span class="text-sm font-semibold text-slate-800">Komputery</span>
                 </div>
-                <div class="product-info">
-                    <span class="product-category">Sieć</span>
-                    <h3>WiLink AX1800</h3>
-                    <p>Wi-Fi 6, AX1800, MU-MIMO</p>
-                    <div class="product-price">
-                        <span class="price">449 zł</span>
-                        <button class="btn-add"><i class="fas fa-cart-plus"></i></button>
-                    </div>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">
-                    <i class="fas fa-watch"></i>
-                </div>
-                <div class="product-info">
-                    <span class="product-category">Wearables</span>
-                    <h3>FitTime Pro</h3>
-                    <p>GPS, pulsometr 24/7, 10 dni</p>
-                    <div class="product-price">
-                        <span class="price">599 zł</span>
-                        <button class="btn-add"><i class="fas fa-cart-plus"></i></button>
-                    </div>
+                <div
+                    class="bg-white p-6 rounded-2xl border border-slate-200/60 flex flex-col items-center justify-center text-center hover:shadow-md hover:border-blue-300 transition-all cursor-pointer group">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <i class="fas fa-home text-xl"></i></div>
+                    <span class="text-sm font-semibold text-slate-800">Smart Home</span>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Korzyści -->
-    <section class="benefits">
-        <div class="benefit-item">
-            <i class="fas fa-truck"></i>
-            <h4>Darmowa dostawa</h4>
-            <p>Od 199 zł</p>
+    <!-- Sekcja Produktów -->
+    <section id="products" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+        <div class="text-center max-w-2xl mx-auto mb-16">
+            <h2 class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">Nasze Flagowe Produkty</h2>
+            <p class="text-slate-600 mt-4">Innowacyjne i bezkompromisowe rozwiązania najwyższej jakości, starannie
+                wyselekcjonowane dla miłośników nowoczesnych technologii.</p>
         </div>
-        <div class="benefit-item">
-            <i class="fas fa-undo"></i>
-            <h4>14 dni na zwrot</h4>
-            <p>Bez podawania przyczyny</p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Produkt 1 -->
+            <div
+                class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-blue-500/20 transition-all flex flex-col">
+                <div
+                    class="aspect-square bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 mb-4 overflow-hidden relative">
+                    <i class="fas fa-headphones text-6xl text-slate-300"></i>
+                </div>
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Audio</span>
+                <h3 class="font-bold text-slate-900 text-lg mb-1">AeroSound X2</h3>
+                <p class="text-sm text-slate-500 mb-4 flex-grow">Aktywna redukcja szumów (ANC), 8h czasu pracy,
+                    ładowanie etui standardem Qi.</p>
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
+                    <span class="text-xl font-bold text-slate-900">299 zł</span>
+                    <button
+                        class="bg-blue-600 hover:bg-blue-700 text-white w-9 h-9 rounded-xl flex items-center justify-center transition-all shadow"><i
+                            class="fas fa-plus text-sm"></i></button>
+                </div>
+            </div>
+
+            <!-- Produkt 2 -->
+            <div
+                class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-blue-500/20 transition-all flex flex-col">
+                <div
+                    class="aspect-square bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 mb-4 overflow-hidden relative">
+                    <i class="fas fa-video text-6xl text-slate-300"></i>
+                </div>
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Smart Home</span>
+                <h3 class="font-bold text-slate-900 text-lg mb-1">HomeCam Mini 2K</h3>
+                <p class="text-sm text-slate-500 mb-4 flex-grow">Rejestracja w jakości 2K, zaawansowane wykrywanie ruchu
+                    i powiadomienia, tryb nocny do 10m.</p>
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
+                    <span class="text-xl font-bold text-slate-900">349 zł</span>
+                    <button
+                        class="bg-blue-600 hover:bg-blue-700 text-white w-9 h-9 rounded-xl flex items-center justify-center transition-all shadow"><i
+                            class="fas fa-plus text-sm"></i></button>
+                </div>
+            </div>
+
+            <!-- Produkt 3 -->
+            <div
+                class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-blue-500/20 transition-all flex flex-col">
+                <div
+                    class="aspect-square bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 mb-4 overflow-hidden relative">
+                    <i class="fas fa-wifi text-6xl text-slate-300"></i>
+                </div>
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Sieć</span>
+                <h3 class="font-bold text-slate-900 text-lg mb-1">WiLink AX1800</h3>
+                <p class="text-sm text-slate-500 mb-4 flex-grow">Prędkość Wi-Fi 6 AX1800, MU-MIMO, stabilna praca przy
+                    obsłudze ponad 30 urządzeń jednocześnie.</p>
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
+                    <span class="text-xl font-bold text-slate-900">449 zł</span>
+                    <button
+                        class="bg-blue-600 hover:bg-blue-700 text-white w-9 h-9 rounded-xl flex items-center justify-center transition-all shadow"><i
+                            class="fas fa-plus text-sm"></i></button>
+                </div>
+            </div>
+
+            <!-- Produkt 4 -->
+            <div
+                class="bg-white p-6 rounded-2xl border border-slate-200/60 shadow-sm hover:shadow-xl hover:border-blue-500/20 transition-all flex flex-col">
+                <div
+                    class="aspect-square bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 mb-4 overflow-hidden relative">
+                    <i class="fas fa-stopwatch text-6xl text-slate-300"></i>
+                </div>
+                <span class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Wearables</span>
+                <h3 class="font-bold text-slate-900 text-lg mb-1">FitTime Pro</h3>
+                <p class="text-sm text-slate-500 mb-4 flex-grow">Precyzyjny wbudowany GPS, ciągły pomiar tętna oraz
+                    poziomu SpO2, do 10 dni na jednym ładowaniu.</p>
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100 mt-auto">
+                    <span class="text-xl font-bold text-slate-900">599 zł</span>
+                    <button
+                        class="bg-blue-600 hover:bg-blue-700 text-white w-9 h-9 rounded-xl flex items-center justify-center transition-all shadow"><i
+                            class="fas fa-plus text-sm"></i></button>
+                </div>
+            </div>
         </div>
-        <div class="benefit-item">
-            <i class="fas fa-shield-alt"></i>
-            <h4>Gwarancja</h4>
-            <p>24 miesiące</p>
-        </div>
-        <div class="benefit-item">
-            <i class="fas fa-headset"></i>
-            <h4>Wsparcie 24/7</h4>
-            <p>Pomoc online</p>
+    </section>
+
+    <!-- Korzyści i Gwarancje -->
+    <section id="benefits" class="bg-slate-900 text-white py-16 w-full">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="flex items-start space-x-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 text-xl">
+                        <i class="fas fa-truck"></i></div>
+                    <div>
+                        <h4 class="font-bold text-lg mb-1">Darmowa wysyłka</h4>
+                        <p class="text-sm text-slate-400">Dla wszystkich zamówień o wartości powyżej 199 zł.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 text-xl">
+                        <i class="fas fa-undo"></i></div>
+                    <div>
+                        <h4 class="font-bold text-lg mb-1">14 dni na zwrot</h4>
+                        <p class="text-sm text-slate-400">Szybki i wygodny proces zwrotu bez podawania przyczyn.</p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 text-xl">
+                        <i class="fas fa-shield-alt"></i></div>
+                    <div>
+                        <h4 class="font-bold text-lg mb-1">2 lata pełnej gwarancji</h4>
+                        <p class="text-sm text-slate-400">Pewność zakupu i pełne wsparcie serwisowe przez 24 miesiące.
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-start space-x-4">
+                    <div
+                        class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center flex-shrink-0 text-xl">
+                        <i class="fas fa-headset"></i></div>
+                    <div>
+                        <h4 class="font-bold text-lg mb-1">Dedykowane wsparcie</h4>
+                        <p class="text-sm text-slate-400">Nasz innowacyjny NeoAsystent AI doradzi w każdej sprawie.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 
     <!-- Stopka -->
-    <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>NeoGadżet</h4>
-                <p>Twój sklep z elektroniką użytkową i gadżetami.</p>
+    <footer id="contact" class="bg-slate-950 text-slate-400 pt-16 pb-8 border-t border-slate-900 w-full mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
+            <div class="space-y-4">
+                <div class="flex items-center space-x-2">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                        <i class="fas fa-bolt text-sm"></i>
+                    </div>
+                    <span class="text-lg font-bold tracking-tight text-white">NeoGadżet</span>
+                </div>
+                <p class="text-sm">Innowacyjny sklep internetowy, z którym odmienisz swoje domowe i codzienne środowisko
+                    dzięki mocy nowoczesnych gadżetów elektronicznych.</p>
             </div>
-            <div class="footer-section">
-                <h4>Obsługa klienta</h4>
-                <ul>
-                    <li><a href="#">Dostawa i płatność</a></li>
-                    <li><a href="#">Zwroty i reklamacje</a></li>
-                    <li><a href="#">FAQ</a></li>
+
+            <div class="space-y-4">
+                <h4 class="font-bold text-white text-base">Obsługa Klienta</h4>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-white transition-colors">Dostawy i Formy Płatności</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Szybkie Zwroty i Reklamacje</a></li>
+                    <li><a href="#" class="hover:text-white transition-colors">Centrum FAQ</a></li>
                 </ul>
             </div>
-            <div class="footer-section">
-                <h4>Kontakt</h4>
-                <p>pomoc@neogadzet.example</p>
-                <p>pon-pt 09:00-17:00</p>
+
+            <div class="space-y-4">
+                <h4 class="font-bold text-white text-base">Informacje Kontaktowe</h4>
+                <p class="text-sm">E-mail: <span class="text-white">pomoc@neogadzet.example</span></p>
+                <p class="text-sm">Biuro Obsługi Klienta: <span class="text-white">Pon. - Pt. 09:00 - 17:00</span></p>
             </div>
         </div>
-        <p class="footer-bottom">&copy; 2026 NeoGadżet Sp. z o.o. Wszelkie prawa zastrzeżone.</p>
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+            <p>&copy; 2026 NeoGadżet Sp. z o.o. Wszelkie prawa zastrzeżone.</p>
+            <div class="flex space-x-6">
+                <a href="#" class="hover:text-white">Polityka Prywatności</a>
+                <a href="#" class="hover:text-white">Regulamin Sklepu</a>
+            </div>
+        </div>
     </footer>
 
-    <!-- WIDGET CZATU -->
-    <div class="chat-widget" id="chatWidget">
-        <div class="chat-header">
-            <div class="chat-header-info">
-                <div class="chat-avatar">
+    <!-- WIDGET INTELIGENTNEGO CZATU -->
+    <div id="chatWidget"
+        class="fixed bottom-6 right-6 w-[92vw] sm:w-[400px] h-[550px] bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col z-50 overflow-hidden transform scale-95 opacity-0 pointer-events-none transition-all duration-300 ease-out origin-bottom-right">
+        <!-- Nagłówek czatu -->
+        <div class="neo-gradient p-5 text-white flex items-center justify-between shadow-md">
+            <div class="flex items-center space-x-3">
+                <div
+                    class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center border border-white/10 text-xl relative">
                     <i class="fas fa-robot"></i>
+                    <span
+                        class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-emerald-500 border-2 border-blue-600"></span>
                 </div>
-                <div class="chat-title">
-                    <h4>NeoAsystent</h4>
-                    <div class="chat-status">
-                        <span class="status-dot online"></span>
-                        Online - Odpowiada natychmiast
-                    </div>
+                <div>
+                    <h4 class="font-bold text-base leading-tight">NeoAsystent</h4>
+                    <span class="text-xs text-blue-100 flex items-center gap-1">
+                        Obsługiwany przez NeoAI (RAG)
+                    </span>
                 </div>
             </div>
-            <div class="chat-header-actions">
-                <button class="chat-action-btn" id="closeChat">
-                    <i class="fas fa-times"></i>
+            <button id="closeChat"
+                class="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
+                <i class="fas fa-times text-sm"></i>
+            </button>
+        </div>
+
+        <!-- Okno rozmowy (Wiadomości) -->
+        <div id="chatMessages" class="flex-1 p-5 overflow-y-auto space-y-4 bg-slate-50">
+            <!-- Pierwsza wiadomość systemowa -->
+            <div class="flex items-start space-x-2.5 max-w-[85%]">
+                <div
+                    class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 text-sm">
+                    <i class="fas fa-robot"></i></div>
+                <div
+                    class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm text-sm text-slate-800 leading-relaxed">
+                    Witaj w NeoGadżet! Jestem Twoim inteligentnym asystentem RAG. Znam specyfikacje słuchawek AeroSound
+                    X2, kamery HomeCam Mini, routera WiLink oraz zegarka FitTime Pro. Jak mogę Ci dzisiaj pomóc?
+                </div>
+            </div>
+        </div>
+
+        <!-- Formularz wprowadzania pytania -->
+        <div class="p-4 border-t border-slate-100 bg-white space-y-2">
+            <div class="flex items-center space-x-2">
+                <input type="text" id="userInput"
+                    class="flex-1 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 rounded-xl px-4 py-3 text-sm outline-none transition-all placeholder:text-slate-400"
+                    placeholder="Wpisz pytanie do asystenta..." autocomplete="off">
+                <button id="sendBtn"
+                    class="bg-blue-600 hover:bg-blue-700 text-white w-11 h-11 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/10 transition-colors">
+                    <i class="fas fa-paper-plane text-sm"></i>
                 </button>
             </div>
-        </div>
-
-        <div class="chat-messages" id="chatMessages">
-            <div class="message assistant-message">
-                <div class="message-content">
-                    Witaj w NeoGadżet! Jestem Twoim inteligentnym asystentem. W czym mogę Ci dzisiaj pomóc?
-                </div>
+            <div class="text-[10px] text-slate-400 text-center">
+                Pytania wysyłane są bezpośrednio do modelu językowego GPT za pomocą bezpiecznych funkcji bezserwerowych.
             </div>
-        </div>
-
-        <div class="chat-input-container">
-            <div class="chat-form">
-                <input type="text" id="userInput" class="chat-input" placeholder="Wpisz pytanie..." autocomplete="off">
-                <button class="chat-send-btn" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
-            </div>
-        </div>
-        <div class="chat-footer">
-            Napędzane przez <a href="#">NeoAI</a> (RAG System)
         </div>
     </div>
 
-    <!-- Przycisk otwierający czat -->
-    <button class="chat-toggle" id="chatTrigger">
-        <i class="fas fa-comments"></i>
-        <div class="chat-badge">1</div>
+    <!-- Pływający Przycisk Aktywacyjny Czatu -->
+    <button id="chatTrigger"
+        class="fixed bottom-6 right-6 w-14 h-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center shadow-xl shadow-blue-500/25 transition-all transform hover:scale-105 active:scale-95 z-50">
+        <i class="fas fa-comments text-xl"></i>
+        <!-- Liczba powiadomień -->
+        <span
+            class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-500 border-2 border-white flex items-center justify-center text-[10px] font-bold">1</span>
     </button>
 
+    <!-- Skrypty Klienta -->
     <script>
         const chatWidget = document.getElementById('chatWidget');
         const chatTrigger = document.getElementById('chatTrigger');
@@ -251,74 +487,92 @@
 
         // Funkcja otwierania czatu
         chatTrigger.addEventListener('click', () => {
-            chatWidget.classList.add('open');
-            chatTrigger.classList.add('hidden');
+            chatWidget.classList.remove('scale-95', 'opacity-0', 'pointer-events-none');
+            chatWidget.classList.add('scale-100', 'opacity-100');
+            chatTrigger.classList.add('scale-0', 'opacity-0', 'pointer-events-none');
+            userInput.focus();
         });
 
         // Funkcja zamykania czatu
         closeChat.addEventListener('click', () => {
-            chatWidget.classList.remove('open');
-            chatTrigger.classList.remove('hidden');
+            chatWidget.classList.add('scale-95', 'opacity-0', 'pointer-events-none');
+            chatWidget.classList.remove('scale-100', 'opacity-100');
+            chatTrigger.classList.remove('scale-0', 'opacity-0', 'pointer-events-none');
         });
 
-        // Funkcja dodawania wiadomości (zgodna z Twoim style.css)
+        // Generowanie szablonu wiadomości
         function addMessage(text, type) {
-            const messageDiv = document.createElement('div');
-            // Typ: 'user' lub 'assistant'
-            messageDiv.className = `message ${type}-message`;
+            const wrapper = document.createElement('div');
 
-            messageDiv.innerHTML = `
-                <div class="message-content">${text}</div>
-                <div class="message-time">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-            `;
+            if (type === 'user') {
+                wrapper.className = 'flex items-start justify-end space-x-2.5 max-w-[85%] ml-auto';
+                wrapper.innerHTML = `
+                    <div class="bg-blue-600 text-white p-3.5 rounded-2xl rounded-tr-none shadow-sm text-sm leading-relaxed">
+                        ${text}
+                    </div>
+                `;
+            } else {
+                wrapper.className = 'flex items-start space-x-2.5 max-w-[85%]';
+                wrapper.innerHTML = `
+                    <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 text-sm"><i class="fas fa-robot"></i></div>
+                    <div class="bg-white p-3.5 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm text-sm text-slate-800 leading-relaxed">
+                        ${text}
+                    </div>
+                `;
+            }
 
-            chatMessages.appendChild(messageDiv);
+            chatMessages.appendChild(wrapper);
             chatMessages.scrollTop = chatMessages.scrollHeight;
-            return messageDiv;
+            return wrapper;
         }
 
-        // Komunikacja z serwerem RAG
+        // Realizacja zapytania i komunikacji z Backendem Vercel
         async function handleChat() {
             const question = userInput.value.trim();
             if (!question) return;
 
-            // 1. Dodaj wiadomość użytkownika
+            // 1. Dodaj wiadomość użytkownika do okna rozmowy
             addMessage(question, 'user');
             userInput.value = '';
 
-            // 2. Dodaj animację pisania
+            // 2. Dodaj animację wskaźnika pisania (Typing Indicator)
             const typingIndicator = document.createElement('div');
-            typingIndicator.className = 'message assistant-message';
+            typingIndicator.className = 'flex items-start space-x-2.5 max-w-[85%]';
             typingIndicator.innerHTML = `
-                <div class="typing-indicator">
-                    <span></span><span></span><span></span>
+                <div class="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center flex-shrink-0 text-sm"><i class="fas fa-robot"></i></div>
+                <div class="bg-white px-4 py-3 rounded-2xl rounded-tl-none border border-slate-100 shadow-sm flex items-center space-x-1">
+                    <span class="dot-pulse w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span class="dot-pulse w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span class="dot-pulse w-2 h-2 rounded-full bg-slate-400"></span>
                 </div>
             `;
             chatMessages.appendChild(typingIndicator);
             chatMessages.scrollTop = chatMessages.scrollHeight;
 
             try {
-                const response = await fetch('http://127.0.0.1:8000/chat', {
+                // Odpytujemy relatywną ścieżkę /api/chat - Vercel zajmie się przekierowaniem
+                const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message: question })
                 });
 
-                if (!response.ok) throw new Error('Serwer niedostępny');
+                if (!response.ok) throw new Error('API Serwerowe nie odpowiada');
 
                 const data = await response.json();
 
-                // 3. Usuń wskaźnik pisania i wstaw odpowiedź
+                // 3. Usuń animację pisania i wstaw faktyczną odpowiedź
                 typingIndicator.remove();
                 addMessage(data.response, 'assistant');
 
             } catch (error) {
                 typingIndicator.remove();
-                addMessage('Przepraszam, mam problem z połączeniem z bazą wiedzy. Spróbuj ponownie za chwilę.', 'assistant');
-                console.error('Błąd Fetch:', error);
+                addMessage('Przepraszam, mam problem z nawiązaniem połączenia ze swoją bezserwerową bazą wiedzy na Vercel. Spróbuj ponownie za chwilę.', 'assistant');
+                console.error('Błąd pobierania danych:', error);
             }
         }
 
+        // Obsługa kliknięć oraz naciśnięcia klawisza Enter
         sendBtn.addEventListener('click', handleChat);
         userInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') handleChat();
