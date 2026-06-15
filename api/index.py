@@ -14,12 +14,12 @@ warnings.filterwarnings("ignore")
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-# Inicjalizacja klienta OpenAI (tylko jeśli klucz jest dostępny w środowisku)
+# Inicjalizacja bota (tylko jeśli klucz jest dostępny)
 client = OpenAI(api_key=OPENAI_API_KEY) if OPENAI_API_KEY else None
 
 app = FastAPI(title="NeoAsystent RAG API - Lekki i Odporny")
 
-# Konfiguracja CORS (umożliwia komunikację z Twoim lokalnym i zdalnym frontendem)
+# Konfiguracja CORS (umożliwia bezpieczną komunikację z frontendu)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -29,10 +29,9 @@ app.add_middleware(
 )
 
 # Globalna pamięć podręczna na wektory bazy wiedzy (In-Memory Cache)
-# Pozwala to zaoszczędzić limity i czas przy ponownych wywołaniach tej samej lambdy
 cached_chunks_with_embeddings = None
 
-# Wbudowana zapasowa baza wiedzy na wypadek problemów ze ścieżkami plików na Vercel (Fail-safe)
+# Wbudowana baza wiedzy (zabezpieczenie fail-safe)
 DEFAULT_KNOWLEDGE_BASE = """
 Słuchawki AeroSound X2 kosztują 299 zł. Mają aktywną redukcję szumów (ANC), działają przez 8 godzin na jednym ładowaniu i obsługują ładowanie bezprzewodowe Qi.
 HomeCam Mini 2K kosztuje 349 zł. Posiada rozdzielczość 2K, funkcję wykrywania ruchu oraz tryb nocny do monitorowania domu.
@@ -49,14 +48,12 @@ def dot_product(v1, v2):
 
 
 def cosine_similarity(v1, v2):
-    """Oblicza podobieństwo cosinusowe dwóch wektorów."""
-    # Ponieważ wektory z modelu text-embedding-3-small są już znormalizowane,
-    # ich podobieństwo cosinusowe to po prostu iloczyn skalarny.
+    """Oblicza podobieństwo cosinusowe (iloczyn skalarny znormalizowanych wektorów OpenAI)."""
     return dot_product(v1, v2)
 
 
 def load_and_embed_knowledge_base():
-    """Wczytuje bazę wiedzy z pliku zewnętrznego lub uruchamia bazę wbudowaną."""
+    """Wczytuje bazę wiedzy i generuje dla niej embeddingi (wektory)."""
     global cached_chunks_with_embeddings
 
     if cached_chunks_with_embeddings is not None:
@@ -64,9 +61,8 @@ def load_and_embed_knowledge_base():
 
     if not client:
         raise ValueError(
-            "Klient OpenAI nie jest zainicjalizowany. Brak klucza API.")
+            "Klient OpenAI nie został zainicjalizowany. Brak klucza API OPENAI_API_KEY.")
 
-    # Próba odnalezienia pliku bazy wiedzy w różnych potencjalnych lokalizacjach na Vercel
     current_dir = os.path.dirname(os.path.abspath(__file__))
     possible_paths = [
         os.path.join(current_dir, "..", "knowledge_base_for_RAG.txt"),
@@ -82,39 +78,31 @@ def load_and_embed_knowledge_base():
             try:
                 with open(path, "r", encoding="utf-8") as f:
                     content = f.read()
-                print(f"Pomyślnie wczytano bazę wiedzy z lokalizacji: {path}")
+                print(f"Pomyślnie wczytano bazę wiedzy: {path}")
                 break
             except Exception as e:
                 print(f"Błąd odczytu z {path}: {e}")
 
-    # Jeśli nie udało się wczytać pliku zewnętrznego, używamy wbudowanej bazy (fail-safe)
     if not content:
-        print("Ostrzeżenie: Plik bazy wiedzy nie został odnaleziony. Uruchamianie wbudowanej bazy zapasowej.")
+        print("Użycie wbudowanej bazy zapasowej (fail-safe).")
         content = DEFAULT_KNOWLEDGE_BASE
 
-    # Podział tekstu według separatora
     separator = "===================================================================="
     if separator in content:
         raw_chunks = content.split(separator)
     else:
         raw_chunks = content.split("\n\n")
 
-    chunks = []
-    for rc in raw_chunks:
-        cleaned = rc.strip()
-        if cleaned:
-            chunks.append(cleaned)
-
+    chunks = [rc.strip() for rc in raw_chunks if rc.strip()]
     if not chunks:
         chunks = [content.strip()]
 
-    # Generowanie embeddingów dla wszystkich fragmentów (Batching)
+    # Generowanie wektorów dla bazy wiedzy
     response = client.embeddings.create(
         input=chunks,
         model="text-embedding-3-small"
     )
 
-    # Łączenie oryginalnego tekstu z wygenerowanym wektorem
     cached_chunks_with_embeddings = []
     for i, data in enumerate(response.data):
         cached_chunks_with_embeddings.append({
@@ -122,8 +110,6 @@ def load_and_embed_knowledge_base():
             "embedding": data.embedding
         })
 
-    print(
-        f"Pomyślnie przygotowano bazę RAG: {len(cached_chunks_with_embeddings)} fragmentów.")
     return cached_chunks_with_embeddings
 
 
@@ -132,16 +118,18 @@ class ChatRequest(BaseModel):
 
 
 async def execute_chat_logic(message: str):
-    """Wspólna logika obsługi zapytania czatu RAG."""
-    if not OPENAI_API_KEY or not client:
-        return {"response": "Konfiguracja serwera niekompletna. Upewnij się, że dodałeś poprawny klucz OPENAI_API_KEY w panelu Vercel."}
+    """Logika obsługi zapytania czatu RAG."""
+    if not OPENAI_API_KEY:
+        return {"response": "Błąd: Brak klucza OPENAI_API_KEY w zmiennych środowiskowych Vercela. Przejdź do Settings -> Environment Variables, dodaj klucz, a następnie wykonaj Redeploy."}
+
+    if not client:
+        return {"response": "Błąd: Nie udało się zainicjalizować bota OpenAI. Sprawdź poprawność klucza OPENAI_API_KEY."}
 
     try:
         kb_data = load_and_embed_knowledge_base()
     except Exception as e:
-        print(f"Błąd inicjalizacji bazy wiedzy RAG: {e}")
-        raise HTTPException(
-            status_code=500, detail="Nie udało się załadować bazy wiedzy RAG.")
+        print(f"Błąd bazy wiedzy RAG: {e}")
+        return {"response": f"Błąd bazy wiedzy RAG: {str(e)}. Upewnij się, że Twoje konto OpenAI posiada środki oraz poprawnie skonfigurowany klucz."}
 
     try:
         # 1. Generowanie wektora zapytania
@@ -157,14 +145,11 @@ async def execute_chat_logic(message: str):
             similarity = cosine_similarity(query_vector, item["embedding"])
             scored_chunks.append((similarity, item["text"]))
 
-        # Sortowanie od najbardziej dopasowanego fragmentu
         scored_chunks.sort(key=lambda x: x[0], reverse=True)
-
-        # Wybór 3 najlepszych fragmentów kontekstu
         top_k = scored_chunks[:3]
         context = "\n\n---\n\n".join([text for _, text in top_k])
 
-        # 3. Prompt systemowy dla LLM
+        # 3. Definicja roli i instrukcji dla modelu (Prompt)
         system_prompt = (
             "Jesteś NeoAsystentem, profesjonalnym doradcą klienta w sklepie z elektroniką NeoGadżet.\n"
             "Użyj poniższych fragmentów bazy wiedzy (kontekstu), aby precyzyjnie odpowiedzieć na pytanie.\n"
@@ -185,31 +170,25 @@ async def execute_chat_logic(message: str):
         return {"response": chat_completion.choices[0].message.content}
 
     except Exception as e:
-        print(f"Błąd podczas przetwarzania zapytania: {e}")
-        return {"response": "Przepraszam, wystąpił problem techniczny podczas generowania odpowiedzi. Spróbuj ponownie za chwilę."}
-
-# Domyślny punkt wejścia dla wdrożenia produkcyjnego na Vercel (POST /api/chat)
+        print(f"Błąd podczas przetwarzania zapytania OpenAI: {e}")
+        return {"response": f"Błąd połączenia z OpenAI: {str(e)}. Upewnij się, że Twój klucz API jest poprawny oraz że nie przekroczyłeś limitów zużycia."}
 
 
 @app.post("/api/chat")
 async def chat_api(request: ChatRequest):
     return await execute_chat_logic(request.message)
 
-# Alias ułatwiający lokalne testowanie bezpośrednio z lokalnego pliku HTML (POST /chat)
-
 
 @app.post("/chat")
 async def chat_local(request: ChatRequest):
     return await execute_chat_logic(request.message)
-
-# Strona główna eliminująca błąd 404 podczas lokalnych testów (GET /)
 
 
 @app.get("/")
 async def root():
     return {
         "status": "active",
-        "message": "Serwer NeoAsystenta działa poprawnie! Aby rozmawiać z botem, otwórz plik index.html w przeglądarce.",
+        "message": "Serwer bota działa! Aby czatować, otwórz plik /sklep/index.html",
         "endpoints": {
             "chat_endpoint_vercel": "POST /api/chat",
             "chat_endpoint_local": "POST /chat",
