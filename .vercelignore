@@ -1,5 +1,6 @@
 # Ignorujemy lokalny serwer produkcyjny na Vercelu
-server.py
+server.py 
+local/
 
 # Ignorujemy środowisko wirtualne i konfigurację lokalną
 venv/
