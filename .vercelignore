@@ -1,0 +1,10 @@
+# Ignorujemy lokalny serwer produkcyjny na Vercelu
+server.py
+
+# Ignorujemy środowisko wirtualne i konfigurację lokalną
+venv/
+.env
+.cursor/
+.vscode/
+__pycache__/
+*.pyc
