@@ -2,7 +2,7 @@ import os
 import sys
 import math
 import warnings
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
@@ -41,27 +41,23 @@ Darmowa dostawa w sklepie NeoGadżet obowiązuje dla wszystkich zamówień od kw
 Zasady zwrotów: Każdy klient ma prawo do zwrotu zakupionego towaru w ciągu 14 dni bez podawania przyczyny. Koszt odesłania towaru pokrywa kupujący.
 """
 
-
 def dot_product(v1, v2):
     """Oblicza iloczyn skalarny dwóch wektorów."""
     return sum(x * y for x, y in zip(v1, v2))
-
 
 def cosine_similarity(v1, v2):
     """Oblicza podobieństwo cosinusowe (iloczyn skalarny znormalizowanych wektorów OpenAI)."""
     return dot_product(v1, v2)
 
-
 def load_and_embed_knowledge_base():
     """Wczytuje bazę wiedzy i generuje dla niej embeddingi (wektory)."""
     global cached_chunks_with_embeddings
-
+    
     if cached_chunks_with_embeddings is not None:
         return cached_chunks_with_embeddings
 
     if not client:
-        raise ValueError(
-            "Klient OpenAI nie został zainicjalizowany. Brak klucza API OPENAI_API_KEY.")
+        raise ValueError("Klient OpenAI nie został zainicjalizowany. Brak klucza API OPENAI_API_KEY.")
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     possible_paths = [
@@ -112,16 +108,14 @@ def load_and_embed_knowledge_base():
 
     return cached_chunks_with_embeddings
 
-
 class ChatRequest(BaseModel):
     message: str
-
 
 async def execute_chat_logic(message: str):
     """Logika obsługi zapytania czatu RAG."""
     if not OPENAI_API_KEY:
         return {"response": "Błąd: Brak klucza OPENAI_API_KEY w zmiennych środowiskowych Vercela. Przejdź do Settings -> Environment Variables, dodaj klucz, a następnie wykonaj Redeploy."}
-
+        
     if not client:
         return {"response": "Błąd: Nie udało się zainicjalizować bota OpenAI. Sprawdź poprawność klucza OPENAI_API_KEY."}
 
@@ -173,16 +167,28 @@ async def execute_chat_logic(message: str):
         print(f"Błąd podczas przetwarzania zapytania OpenAI: {e}")
         return {"response": f"Błąd połączenia z OpenAI: {str(e)}. Upewnij się, że Twój klucz API jest poprawny oraz że nie przekroczyłeś limitów zużycia."}
 
-
+# Jawne mapowanie wszystkich najpopularniejszych ścieżek
 @app.post("/api/chat")
+@app.post("/chat")
 async def chat_api(request: ChatRequest):
     return await execute_chat_logic(request.message)
 
-
-@app.post("/chat")
-async def chat_local(request: ChatRequest):
-    return await execute_chat_logic(request.message)
-
+# Inteligentne koło ratunkowe (Catch-all) na wypadek nietypowego routingu Vercela
+@app.post("/{path:path}")
+async def catch_all_post(path: str, request: Request):
+    print(f"Przechwycono dynamiczne zapytanie POST na ścieżkę: {path}")
+    try:
+        body = await request.json()
+        message = body.get("message", "")
+        if "chat" in path or "chat" in message or message:
+            return await execute_chat_logic(message)
+    except Exception as e:
+        print(f"Błąd analizy catch-all: {e}")
+    
+    return {
+        "error": f"Nieobsługiwany punkt końcowy: {path}",
+        "suggested_endpoint": "POST /api/chat"
+    }
 
 @app.get("/")
 async def root():
@@ -195,7 +201,6 @@ async def root():
             "health_check": "GET /api/health"
         }
     }
-
 
 @app.get("/api/health")
 async def health():
