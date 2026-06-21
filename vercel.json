@@ -1,5 +1,10 @@
 {
   "cleanUrls": true,
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "knowledge_base_for_RAG.txt"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

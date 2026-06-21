@@ -3,10 +3,12 @@ import sys
 import math
 import warnings
 from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from openai import OpenAI
+from pathlib import Path
 
 # Wyciszenie ostrzeżeń systemowych
 warnings.filterwarnings("ignore")
@@ -41,27 +43,30 @@ Darmowa dostawa w sklepie NeoGadżet obowiązuje dla wszystkich zamówień od kw
 Zasady zwrotów: Każdy klient ma prawo do zwrotu zakupionego towaru w ciągu 14 dni bez podawania przyczyny. Koszt odesłania towaru pokrywa kupujący.
 """
 
+
 def dot_product(v1, v2):
     """Oblicza iloczyn skalarny dwóch wektorów."""
     return sum(x * y for x, y in zip(v1, v2))
 
+
 def cosine_similarity(v1, v2):
-    """Oblicza podobieństwo cosinusowe (iloczyn skalarny znormalizowanych wektorów OpenAI)."""
+    """Oblicza podobieństwo cosinusowe (iloczyn skalarny dla znormalizowanych wektorów OpenAI)."""
     return dot_product(v1, v2)
+
 
 def load_and_embed_knowledge_base():
     """Wczytuje bazę wiedzy i generuje dla niej embeddingi (wektory)."""
     global cached_chunks_with_embeddings
-    
+
     if cached_chunks_with_embeddings is not None:
         return cached_chunks_with_embeddings
 
     if not client:
-        raise ValueError("Klient OpenAI nie został zainicjalizowany. Brak klucza API OPENAI_API_KEY.")
+        raise ValueError(
+            "Klient OpenAI nie został zainicjalizowany. Brak klucza API OPENAI_API_KEY.")
 
     current_dir = os.path.dirname(os.path.abspath(__file__))
     possible_paths = [
-        os.path.join(current_dir, "..", "knowledge_base_for_RAG.txt"),
         os.path.join(current_dir, "knowledge_base_for_RAG.txt"),
         "knowledge_base_for_RAG.txt",
         "./knowledge_base_for_RAG.txt",
@@ -108,14 +113,16 @@ def load_and_embed_knowledge_base():
 
     return cached_chunks_with_embeddings
 
+
 class ChatRequest(BaseModel):
     message: str
 
+
 async def execute_chat_logic(message: str):
     """Logika obsługi zapytania czatu RAG."""
-    if not OPENAI_API_KEY:
+    if not OPENAI_API_KEY or OPENAI_API_KEY == "dummy_key_to_prevent_crash_at_startup":
         return {"response": "Błąd: Brak klucza OPENAI_API_KEY w zmiennych środowiskowych Vercela. Przejdź do Settings -> Environment Variables, dodaj klucz, a następnie wykonaj Redeploy."}
-        
+
     if not client:
         return {"response": "Błąd: Nie udało się zainicjalizować bota OpenAI. Sprawdź poprawność klucza OPENAI_API_KEY."}
 
@@ -167,45 +174,45 @@ async def execute_chat_logic(message: str):
         print(f"Błąd podczas przetwarzania zapytania OpenAI: {e}")
         return {"response": f"Błąd połączenia z OpenAI: {str(e)}. Upewnij się, że Twój klucz API jest poprawny oraz że nie przekroczyłeś limitów zużycia."}
 
-# Jawne mapowanie wszystkich najpopularniejszych ścieżek
+# Mapowanie punktów końcowych dla czatu
+
+
 @app.post("/api/chat")
 @app.post("/chat")
 async def chat_api(request: ChatRequest):
     return await execute_chat_logic(request.message)
 
-# Inteligentne koło ratunkowe (Catch-all) na wypadek nietypowego routingu Vercela
-@app.post("/{path:path}")
-async def catch_all_post(path: str, request: Request):
-    print(f"Przechwycono dynamiczne zapytanie POST na ścieżkę: {path}")
-    try:
-        body = await request.json()
-        message = body.get("message", "")
-        if "chat" in path or "chat" in message or message:
-            return await execute_chat_logic(message)
-    except Exception as e:
-        print(f"Błąd analizy catch-all: {e}")
-    
-    return {
-        "error": f"Nieobsługiwany punkt końcowy: {path}",
-        "suggested_endpoint": "POST /api/chat"
-    }
+# Endpoint główny (GET /) – serwuje plik index.html bezpośrednio przez FastAPI
 
-@app.get("/")
-async def root():
-    return {
-        "status": "active",
-        "message": "Serwer bota działa! Aby czatować, otwórz plik /sklep/index.html",
-        "endpoints": {
-            "chat_endpoint_vercel": "POST /api/chat",
-            "chat_endpoint_local": "POST /chat",
-            "health_check": "GET /api/health"
-        }
-    }
+
+@app.get("/", response_class=HTMLResponse)
+async def serve_frontend():
+    try:
+        html_path = Path(__file__).parent / "index.html"
+        if not html_path.exists():
+            html_path = Path("index.html")
+
+        if html_path.exists():
+            with open(html_path, "r", encoding="utf-8") as f:
+                return f.read()
+    except Exception as e:
+        print(f"Błąd odczytu pliku index.html: {e}")
+
+    return """
+    <html>
+        <head><title>NeoGadżet</title></head>
+        <body style="font-family: sans-serif; padding: 40px; text-align: center;">
+            <h2>Serwer NeoAsystenta działa poprawnie!</h2>
+            <p>Nie odnaleziono pliku <code>index.html</code> w katalogu głównym projektu.</p>
+        </body>
+    </html>
+    """
+
 
 @app.get("/api/health")
 async def health():
     return {
         "status": "healthy",
-        "openai_key_configured": OPENAI_API_KEY is not None,
+        "openai_key_configured": OPENAI_API_KEY is not None and OPENAI_API_KEY != "dummy_key_to_prevent_crash_at_startup",
         "is_cache_warm": cached_chunks_with_embeddings is not None
     }
