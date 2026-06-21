@@ -8,11 +8,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "api/index.py"
-    },
-    {
-      "source": "/chat",
-      "destination": "api/index.py"
+      "destination": "/api/index.py"
     }
   ]
 }
